@@ -1,0 +1,130 @@
+.pipeline {
+  width: 100%;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pipeline-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pipeline-subtitle {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.pipeline-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  counter-reset: step;
+}
+
+.pipeline-step {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #21262d;
+  align-items: flex-start;
+}
+
+.pipeline-step:last-child {
+  border-bottom: none;
+}
+
+.step-icon {
+  font-size: 1rem;
+  width: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  text-align: center;
+}
+
+.step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.step-label {
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.step-detail {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.pipeline-trace {
+  border-top: 1px solid #30363d;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.pipeline-trace h3 {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pipeline-trace dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pipeline-trace dl div {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.pipeline-trace dt {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pipeline-trace dd {
+  margin: 0;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+.pipeline-trace a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.pipeline-trace a:hover {
+  text-decoration: underline;
+}
+
+.pipeline-trace em {
+  color: var(--muted);
+  font-style: normal;
+}

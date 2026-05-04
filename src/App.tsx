@@ -1,5 +1,6 @@
 import "./App.css";
 import { GameCanvas } from "./components/GameCanvas";
+import { PipelineInfo } from "./components/PipelineInfo";
 
 const mode = import.meta.env.PROD ? "production" : "local";
 
@@ -31,6 +32,7 @@ export default function App() {
         </dl>
       </header>
       <GameCanvas />
+      <PipelineInfo />
       <footer className="footer">
         <p>
           Arrows to move · Reach the lily pads · Avoid cars · Ride logs on the river
