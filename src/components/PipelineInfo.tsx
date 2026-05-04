@@ -5,98 +5,44 @@ const imageRef = import.meta.env.VITE_IMAGE_REF || "local";
 const shortSha = sha === "local" ? "local" : sha.slice(0, 7);
 
 const STEPS = [
-  {
-    icon: "✏️",
-    label: "Code",
-    detail: "Feature branch → Pull Request → merge to main",
-  },
-  {
-    icon: "⚙️",
-    label: "CI",
-    detail: "GitHub Actions: lint, type-check, unit tests, Docker build validation",
-  },
-  {
-    icon: "📦",
-    label: "Image",
-    detail: `Docker image built for linux/amd64 and pushed to GHCR as an immutable artifact tagged sha-${shortSha}`,
-  },
-  {
-    icon: "🗂️",
-    label: "Registry",
-    detail: `ghcr.io/fly-demos/frogger — stores every immutable image per commit. JFrog Fly connects here for artifact exploration and promotion.`,
-  },
-  {
-    icon: "🚀",
-    label: "Deploy",
-    detail: "Render deploy hook fires automatically. Render pulls the exact tagged image from the registry — no source code transferred.",
-  },
-  {
-    icon: "🌐",
-    label: "Runtime",
-    detail: "Render serves the container over HTTPS. The image ref and SHA visible above prove which exact artifact is live.",
-  },
+  { label: "Code merged to main", detail: "GitHub Actions triggered" },
+  { label: "CI passes", detail: "Lint · tests · Docker build" },
+  { label: "Image pushed to registry", detail: imageRef === "local" ? "local build" : imageRef },
+  { label: "Production updated", detail: "Render pulls the new image and redeploys" },
+  { label: "This page served", detail: `Running image sha-${shortSha}` },
 ];
 
 export function PipelineInfo() {
   return (
     <section className="pipeline" aria-label="SDLC pipeline">
-      <h2 className="pipeline-title">How this app is delivered</h2>
-      <p className="pipeline-subtitle">
-        Every field in the header above is traceable back through this pipeline.
-      </p>
-
+      <h2 className="pipeline-title">How this got here</h2>
       <ol className="pipeline-steps">
         {STEPS.map((s, i) => (
           <li key={i} className="pipeline-step">
-            <span className="step-icon" aria-hidden="true">{s.icon}</span>
-            <div className="step-body">
-              <strong className="step-label">{s.label}</strong>
-              <p className="step-detail">{s.detail}</p>
+            <span className="step-num">{i + 1}</span>
+            <div>
+              <strong>{s.label}</strong>
+              <p>{s.detail}</p>
             </div>
           </li>
         ))}
       </ol>
-
-      <div className="pipeline-trace">
-        <h3>Trace this deployment</h3>
-        <dl>
-          <div>
-            <dt>Image in registry</dt>
-            <dd>
-              {imageRef === "local" ? (
-                <em>local build</em>
-              ) : (
-                <a
-                  href={`https://github.com/orgs/fly-demos/packages/container/frogger`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {imageRef}
-                </a>
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>GitHub Actions run</dt>
-            <dd>
-              {sha === "local" ? (
-                <em>local build</em>
-              ) : (
-                <a
-                  href={`https://github.com/fly-demos/frogger/commits/${sha}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {shortSha} → view commit
-                </a>
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>JFrog Fly (coming soon)</dt>
-            <dd>Will surface build context, artifact promotion, and runtime env visibility from this same image ref.</dd>
-          </div>
-        </dl>
+      <div className="pipeline-links">
+        {sha !== "local" && (
+          <>
+            <a href={`https://github.com/fly-demos/frogger/commit/${sha}`} target="_blank" rel="noreferrer">
+              Commit {shortSha}
+            </a>
+            <span>·</span>
+            <a href="https://github.com/fly-demos/frogger/pkgs/container/frogger" target="_blank" rel="noreferrer">
+              Image in registry
+            </a>
+            <span>·</span>
+            <a href="https://github.com/fly-demos/frogger/actions" target="_blank" rel="noreferrer">
+              CI runs
+            </a>
+          </>
+        )}
       </div>
     </section>
   );
