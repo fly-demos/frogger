@@ -97,11 +97,7 @@ docker build -t frogger:local . && docker run --rm -p 8080:8080 -e PORT=8080 fro
 
 ## Connecting JFrog Fly (next step)
 
-Once your baseline demo is running, plugging in Fly requires no application code changes:
-
-1. Add a second `docker push` in `.github/workflows/deploy.yml` targeting your JFrog registry.
-2. Update the Render pull credential to use the JFrog registry URL.
-3. Fly will then surface all builds, artifact metadata, and the runtime pull in its dashboard.
+Once your baseline demo is running, plugging in Fly requires no application code changes — add your JFrog registry as an additional push target in the deploy workflow and update the Render pull credential to point at it.
 
 ---
 
