@@ -20,20 +20,6 @@ import {
 } from "../game/engine";
 import "./GameCanvas.css";
 
-// ---------- lane labels ----------
-const LANE_LABELS: Record<number, string> = {
-  0: "PRODUCTION",
-  1: "staging",
-  2: "build stream",
-  3: "build stream",
-  4: "build stream",
-  5: "QA",
-  6: "incident zone",
-  7: "incident zone",
-  8: "incident zone",
-  9: "dev",
-};
-
 // ---------- draw ----------
 function draw(ctx: CanvasRenderingContext2D, state: GameState) {
   ctx.fillStyle = "#0d1117";
@@ -42,95 +28,66 @@ function draw(ctx: CanvasRenderingContext2D, state: GameState) {
   for (let row = 0; row < ROWS; row++) {
     const y = row * TILE;
 
-    // production row
     if (row === ROW_GOAL) {
-      ctx.fillStyle = "#0d2136";
+      ctx.fillStyle = "#063366";
       ctx.fillRect(0, y, CANVAS_WIDTH, TILE);
       for (let col = 0; col < COLS; col++) {
         const gx = col * TILE;
         if (GOAL_PAD_COLS.includes(col)) {
           const filled = state.filledGoals.has(col);
-          ctx.fillStyle = filled ? "#1a7f37" : "#1f6feb";
-          ctx.fillRect(gx + 5, y + 5, TILE - 10, TILE - 10);
+          ctx.fillStyle = filled ? "#238636" : "#2ea043";
+          ctx.fillRect(gx + 4, y + 6, TILE - 8, TILE - 12);
           ctx.font = `${TILE * 0.55}px serif`;
           ctx.textAlign = "center";
-          ctx.fillText(filled ? "✅" : "🖥️", gx + TILE / 2, y + TILE / 2 + 6);
+          ctx.fillText(filled ? "🐸" : "🪰", gx + TILE / 2, y + TILE / 2 + 6);
         }
       }
-
-    // safe / pipeline safe zones
     } else if (row === ROW_START || row === 5 || row === 1) {
-      ctx.fillStyle = row === ROW_START ? "#0d1f12" : "#111820";
+      ctx.fillStyle = "#14532d";
       ctx.fillRect(0, y, CANVAS_WIDTH, TILE);
-      // dashed separator
-      ctx.setLineDash([4, 6]);
-      ctx.strokeStyle = "#30363d88";
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(CANVAS_WIDTH, y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-    // build stream (was river)
+      for (let x = 0; x < CANVAS_WIDTH; x += TILE) {
+        ctx.strokeStyle = "#166534";
+        ctx.strokeRect(x + 0.5, y + 0.5, TILE, TILE);
+      }
     } else if (row >= ROW_RIVER_START && row <= ROW_RIVER_END) {
-      ctx.fillStyle = "#0c1a2e";
+      ctx.fillStyle = "#0a3069";
       ctx.fillRect(0, y, CANVAS_WIDTH, TILE);
-      // scrolling data lines
-      ctx.strokeStyle = "rgba(88,166,255,0.07)";
-      ctx.lineWidth = 1;
-      for (let x = 0; x < CANVAS_WIDTH; x += 20) {
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      for (let x = 0; x < CANVAS_WIDTH; x += 24) {
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x, y + TILE);
+        ctx.lineTo(x + 12, y + TILE);
         ctx.stroke();
       }
-
-    // incident zone (was road)
     } else {
-      ctx.fillStyle = "#1a0d0d";
+      ctx.fillStyle = "#21262d";
       ctx.fillRect(0, y, CANVAS_WIDTH, TILE);
-      // lane markings
-      ctx.strokeStyle = "#f85149" + "22";
-      ctx.setLineDash([8, 8]);
-      ctx.beginPath();
-      ctx.moveTo(0, y + TILE / 2);
-      ctx.lineTo(CANVAS_WIDTH, y + TILE / 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.strokeStyle = "#f0f6fc22";
+      for (let x = 0; x < CANVAS_WIDTH; x += TILE) {
+        ctx.strokeRect(x + 0.5, y + TILE * 0.65, TILE, 2);
+      }
     }
-
-    // lane label (right-aligned, subtle)
-    ctx.fillStyle = "#ffffff18";
-    ctx.font = "7px monospace";
-    ctx.textAlign = "right";
-    ctx.fillText(LANE_LABELS[row] ?? "", CANVAS_WIDTH - 4, y + TILE - 5);
   }
 
-  // build artifacts (was logs) — blue container shapes with box emoji
+  // logs — brown wood planks
   for (const l of state.logs) {
-    ctx.fillStyle = "#1f3d6e";
+    ctx.fillStyle = "#8b5a2b";
     ctx.fillRect(l.x, l.y, l.w, l.h);
-    ctx.strokeStyle = "#58a6ff55";
+    ctx.strokeStyle = "#5c3d1e";
     ctx.lineWidth = 1;
     ctx.strokeRect(l.x + 0.5, l.y + 0.5, l.w, l.h);
-    ctx.font = `${l.h * 0.65}px serif`;
-    ctx.textAlign = "left";
-    ctx.fillText("📦", l.x + 4, l.y + l.h * 0.78);
   }
 
-  // incidents (was cars) — red bug obstacles with 🐛 emoji
+  // cars — coloured vehicles
   for (const c of state.cars) {
-    ctx.fillStyle = "#3d0f0f";
+    const hue = ((c.id.charCodeAt(2) || 0) * 47) % 360;
+    ctx.fillStyle = `hsl(${hue} 55% 45%)`;
     ctx.fillRect(c.x, c.y, c.w, c.h);
-    ctx.strokeStyle = "#f85149aa";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(c.x + 0.5, c.y + 0.5, c.w, c.h);
-    ctx.font = `${c.h * 0.72}px serif`;
-    ctx.textAlign = "center";
-    ctx.fillText("🐛", c.x + c.w / 2, c.y + c.h * 0.8);
+    ctx.fillStyle = "#f0f6fc33";
+    ctx.fillRect(c.x + 6, c.y + 4, c.w - 20, c.h - 14);
   }
 
-  // player — frog emoji (greyed out when dead)
+  // player — 🐸 frog emoji (greyed out when dead)
   const fr = frogHitbox(state);
   ctx.globalAlpha = state.gameOver ? 0.35 : 1;
   ctx.font = `${fr.h * 0.9}px serif`;
@@ -212,9 +169,9 @@ export function GameCanvas() {
   return (
     <div className="game-wrap">
       <div className="hud">
-        <span>Deploys {ui.score}</span>
+        <span>Score {ui.score}</span>
         <span className="hud-controls">↑ ↓ ← → to move</span>
-        <span>{"🚀".repeat(Math.max(0, ui.lives))}</span>
+        <span>{"🐸".repeat(Math.max(0, ui.lives))}</span>
       </div>
       <canvas
         ref={canvasRef}
@@ -226,13 +183,13 @@ export function GameCanvas() {
       />
       {ui.won ? (
         <div className="overlay win">
-          <p>All environments deployed! 🚀</p>
+          <p>You caught every fly! 🪰</p>
           <p className="hint">Press Space to play again.</p>
         </div>
       ) : null}
       {ui.gameOver ? (
         <div className="overlay lose">
-          <p>Deployment failed.</p>
+          <p>Game over 🐸</p>
           <p className="hint">Press Space to retry.</p>
         </div>
       ) : null}
