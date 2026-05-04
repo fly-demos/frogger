@@ -91,11 +91,16 @@ function draw(ctx: CanvasRenderingContext2D, state: GameState) {
 
   // player — 🐸 frog emoji, drawn at full tile size centered on the tile
   const fr = frogHitbox(state);
-  // fr is the collision box (TILE/2 square); tile centre is fr.x + fr.w/2, fr.y + fr.h/2
   const px = fr.x + fr.w / 2;
   const py = fr.y + fr.h / 2;
+  // shadow disc so the emoji is visible on any background
+  ctx.globalAlpha = state.gameOver ? 0.25 : 0.35;
+  ctx.fillStyle = "#000";
+  ctx.beginPath();
+  ctx.arc(px, py, TILE * 0.44, 0, Math.PI * 2);
+  ctx.fill();
   ctx.globalAlpha = state.gameOver ? 0.35 : 1;
-  ctx.font = `${TILE * 0.82}px serif`;
+  ctx.font = `${TILE * 0.9}px serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("🐸", px, py);
