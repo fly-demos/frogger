@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: read
-  packages: write   # required to push to GHCR
+  id-token: write
 
 jobs:
   push-and-render:
@@ -17,8 +17,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Setup JFrog Fly
+        uses: jfrog/fly-action@v1
 
       - name: Set image tag
         id: meta
@@ -30,22 +30,22 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
+          tags: ${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.meta.outputs.tag }}
           build-args: |
             GIT_SHA=${{ github.sha }}
-            IMAGE_REF=ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
+            IMAGE_REF=${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.meta.outputs.tag }}
+            FLY_REGISTRY=${{ env.FLY_REGISTRY_SUBDOMAIN }}
 
       - name: Trigger Render deploy
         env:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           TAG: ${{ steps.meta.outputs.tag }}
-          OWNER: ${{ github.repository_owner }}
         run: |
           set -e
           if [ -z "$HOOK" ]; then
             echo "RENDER_DEPLOY_HOOK_URL not set — skipping Render trigger."
             exit 0
           fi
-          IMGURL_PART=$(python3 -c "import os, urllib.parse; print(urllib.parse.quote(f\"ghcr.io/{os.environ['OWNER']}/frogger:{os.environ['TAG']}\", safe=''))")
+          IMGURL_PART=$(python3 -c "import os, urllib.parse; print(urllib.parse.quote(f\"{os.environ['FLY_REGISTRY_SUBDOMAIN']}/docker/frogger:{os.environ['TAG']}\", safe=''))")
           if [[ "$HOOK" != *\?* ]]; then SEP='?'; else SEP='&'; fi
           curl -fsS -X POST "${HOOK}${SEP}imgURL=${IMGURL_PART}"
