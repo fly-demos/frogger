@@ -1,117 +1,53 @@
-# Frogger — JFrog Fly demo
+# Frogger
 
-React + Vite Frogger clone with **Docker** image built in **GitHub Actions**, pushed to **Docker Hub**, and deployed to **Render** (Existing Image + deploy hook). Intended as a Fly-ready sample: add a **JFrog registry** later and repoint Render without changing the game code.
+A browser Frogger clone — React + Vite + TypeScript, containerised with Docker, deployed on [Render](https://render.com) via GitHub Actions.
 
-## Create the GitHub org and repository
+Built as a demo for [JFrog Fly](https://jfrog.com/fly/).
 
-This environment could not run `gh` or the GitHub API with your credentials, so create the org and repo in the browser (or install the [GitHub CLI](https://cli.github.com/) and run the commands below locally).
+## Play
 
-### 1. Create organization `jfrog-fly-demos`
+Live at **https://frogger.fly-demos.com** _(add your Render URL here)_
 
-1. Open **[Create a new organization](https://github.com/account/organizations/new?plan=free)** (Free plan).
-2. Name it **`jfrog-fly-demos`** (must be available on GitHub).
-3. Finish the wizard (billing email, etc.).
+Arrow keys to move. Reach all five lily pads to win. Avoid cars; ride logs across the river.
 
-### 2. Create the repository
+## Stack
 
-1. Go to **https://github.com/organizations/jfrog-fly-demos/repositories/new** (adjust if your org URL differs).
-2. Repository name: **`frogger`**.
-3. Visibility: **Public** (recommended for Actions minutes on free orgs) or Private if your org policy requires it.
-4. **Do not** add a README, `.gitignore`, or license (this repo already has them).
-5. Create the repository.
+| Layer | Technology |
+|-------|-----------|
+| App | React 19, Vite, TypeScript |
+| Container | Docker (multi-stage, `linux/amd64`) |
+| Registry | GitHub Container Registry (GHCR) |
+| Hosting | Render (Existing Image) |
+| CI/CD | GitHub Actions |
 
-### 3. Push this code
+## CI/CD pipeline
 
-If this folder is **already a git repo** with a commit, add the remote and push:
-
-```bash
-cd /path/to/Frogger
-git remote add origin https://github.com/jfrog-fly-demos/frogger.git
-git branch -M main
-git push -u origin main
-```
-
-Otherwise:
-
-```bash
-cd /path/to/Frogger
-git init
-git checkout -b main
-git add .
-git commit -m "Initial Frogger demo: React, Docker, GHA, Render"
-git remote add origin https://github.com/jfrog-fly-demos/frogger.git
-git push -u origin main
-```
-
-This repo was committed with a **local** `user.name` / `user.email` only for that machine; override with your identity if you amend or re-commit: `git config user.name "…"` and `git config user.email "…"`.
-
-**Optional (GitHub CLI):**
-
-```bash
-brew install gh
-gh auth login
-gh org create jfrog-fly-demos --plan free   # if not created in the UI
-gh repo create jfrog-fly-demos/frogger --public --source=. --remote=origin --push
-```
+- **Pull request** — install, lint, test, Docker build (no push).
+- **Merge to `main`** — build + push `ghcr.io/fly-demos/frogger:sha-<short>` to GHCR, then POST the Render deploy hook so production updates to that exact image.
 
 ## Local development
 
 ```bash
 npm install
-npm run dev
-```
-
-If your machine routes npm through JFrog and installs fail, use a clean registry for this folder:
-
-```bash
-npm install --registry=https://registry.npmjs.org/
-```
-
-Or keep the included [`.npmrc`](.npmrc) (`registry=https://registry.npmjs.org/`) and adjust corporate policy if it overrides project settings.
-
-## Docker
-
-```bash
+npm run dev        # http://localhost:5173
+npm run test
+npm run build
 docker build -t frogger:local .
 docker run --rm -p 8080:8080 -e PORT=8080 frogger:local
 ```
 
-Open **http://localhost:8080**.
+## Secrets (repo Settings → Secrets → Actions)
 
-## GitHub Actions secrets
+| Secret | Value |
+|--------|-------|
+| `RENDER_DEPLOY_HOOK_URL` | Deploy hook URL from the Render service Settings tab |
 
-In **GitHub → repo → Settings → Secrets and variables → Actions**, add:
+GHCR push uses the built-in `GITHUB_TOKEN` — no extra credentials required.
 
-| Secret | Purpose |
-|--------|---------|
-| `DOCKERHUB_USERNAME` | Docker Hub user or org name (image is `docker.io/<username>/frogger:<tag>`). |
-| `DOCKERHUB_TOKEN` | [Docker Hub access token](https://docs.docker.com/docker-hub/access-tokens/) with **read & write** (CI push). |
-| `RENDER_DEPLOY_HOOK_URL` | Full deploy hook URL from Render (includes `key=`). Optional until Render is configured. |
+## JFrog Fly
 
-**Render dashboard**
-
-Render must verify it can **pull** your image when you create an **Existing Image** service, so **push at least one tag** to Docker Hub first (e.g. run the **Deploy** workflow once after secrets exist, or `docker build` + `docker push` locally).
-
-1. Create a **Web Service** → **Existing Image**.
-2. Default image: `docker.io/<DOCKERHUB_USERNAME>/frogger:<some-tag>` — the **registry + repository path** must stay the same as in CI (`docker.io/<user>/frogger`). Tags can differ per deploy; the workflow passes `imgURL` with the new `sha-*` tag ([Render docs](https://render.com/docs/deploy-hooks#deploying-from-an-image-registry)).
-3. Add **Container registry credentials** for Docker Hub with **pull** access to the private image.
-4. Copy **Deploy Hook** URL into `RENDER_DEPLOY_HOOK_URL`.
-
-On each push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds, pushes `docker.io/<user>/frogger:sha-<short>`, and POSTs the deploy hook with URL-encoded `imgURL` so Render pulls that tag.
-
-## JFrog Fly (later)
-
-- Push the same image to your **JFrog Docker registry** from CI (second `docker push`).
-- Store pull credentials in Render for the JFrog host.
-- Point the default image / `imgURL` prefix at the JFrog reference once Fly is the artifact source of truth.
-
-## Scripts
-
-- `npm run dev` — Vite dev server  
-- `npm run build` — production bundle  
-- `npm run test` — Vitest  
-- `npm run lint` — ESLint  
+When Fly is connected, the pipeline will also push to a JFrog private registry and Render will pull from there — no application code changes needed.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT
