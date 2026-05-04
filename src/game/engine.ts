@@ -47,9 +47,6 @@ function nextLogId() {
   return `l-${++logId}`;
 }
 
-function rowCenterY(row: number) {
-  return row * TILE + TILE / 2;
-}
 
 export function createInitialState(): GameState {
   carId = 0;
