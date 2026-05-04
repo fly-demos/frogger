@@ -37,9 +37,11 @@ function draw(ctx: CanvasRenderingContext2D, state: GameState) {
           const filled = state.filledGoals.has(col);
           ctx.fillStyle = filled ? "#238636" : "#2ea043";
           ctx.fillRect(gx + 4, y + 6, TILE - 8, TILE - 12);
-          ctx.font = `${TILE * 0.55}px serif`;
+          ctx.font = `${TILE * 0.6}px serif`;
           ctx.textAlign = "center";
-          ctx.fillText(filled ? "🐸" : "🪰", gx + TILE / 2, y + TILE / 2 + 6);
+          ctx.textBaseline = "middle";
+          ctx.fillText(filled ? "🐸" : "🪰", gx + TILE / 2, y + TILE / 2);
+          ctx.textBaseline = "alphabetic";
         }
       }
     } else if (row === ROW_START || row === 5 || row === 1) {
@@ -87,12 +89,17 @@ function draw(ctx: CanvasRenderingContext2D, state: GameState) {
     ctx.fillRect(c.x + 6, c.y + 4, c.w - 20, c.h - 14);
   }
 
-  // player — 🐸 frog emoji (greyed out when dead)
+  // player — 🐸 frog emoji, drawn at full tile size centered on the tile
   const fr = frogHitbox(state);
+  // fr is the collision box (TILE/2 square); tile centre is fr.x + fr.w/2, fr.y + fr.h/2
+  const px = fr.x + fr.w / 2;
+  const py = fr.y + fr.h / 2;
   ctx.globalAlpha = state.gameOver ? 0.35 : 1;
-  ctx.font = `${fr.h * 0.9}px serif`;
+  ctx.font = `${TILE * 0.82}px serif`;
   ctx.textAlign = "center";
-  ctx.fillText("🐸", fr.x + fr.w / 2, fr.y + fr.h * 0.88);
+  ctx.textBaseline = "middle";
+  ctx.fillText("🐸", px, py);
+  ctx.textBaseline = "alphabetic";
   ctx.globalAlpha = 1;
 }
 
