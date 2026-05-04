@@ -20,6 +20,29 @@ Arrow keys to move. Reach all five lily pads to win. Avoid cars; ride logs acros
 | Hosting | Render (Existing Image) |
 | CI/CD | GitHub Actions |
 
+## What you see in the app (SDLC story)
+
+The header panel shows live provenance of the running instance:
+
+| Field | What it means |
+|-------|--------------|
+| **Environment** | `production` when served from Render; `local` in `npm run dev` |
+| **Image** | The exact OCI image reference pulled by Render — `ghcr.io/fly-demos/frogger:sha-<short>`. This is the **artifact** that JFrog Fly will later track, promote, and gate. |
+| **SHA** | The full Git commit SHA baked into the image at build time. Ties the running container back to a specific commit and GitHub Actions run. |
+| **Built** | Timestamp of when `vite build` ran inside the Docker build step. |
+
+This means you can open the live URL, read the **Image** field, and trace it back through:
+
+```
+Browser → Render (running image) → GHCR (registry) → GitHub Actions (build run) → Git commit
+```
+
+When JFrog Fly is connected, it adds:
+
+```
+Browser → Render → JFrog registry (promoted artifact) → Fly build context → audit trail
+```
+
 ## CI/CD pipeline
 
 - **Pull request** — install, lint, test, Docker build (no push).
