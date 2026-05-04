@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
+  COLS,
   GOAL_PAD_COLS,
   ROW_GOAL,
   ROW_RIVER_END,

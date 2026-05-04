@@ -1,6 +1,7 @@
 import {
   CANVAS_WIDTH,
   COLS,
+  ROWS,
   GOAL_PAD_COLS,
   ROW_GOAL,
   ROW_RIVER_END,
