@@ -50,19 +50,11 @@ function draw(ctx: CanvasRenderingContext2D, state: GameState) {
         const gx = col * TILE;
         if (GOAL_PAD_COLS.includes(col)) {
           const filled = state.filledGoals.has(col);
-          // server rack shape
           ctx.fillStyle = filled ? "#1a7f37" : "#1f6feb";
           ctx.fillRect(gx + 5, y + 5, TILE - 10, TILE - 10);
-          // status light
-          ctx.fillStyle = filled ? "#3fb950" : "#58a6ff";
-          ctx.beginPath();
-          ctx.arc(gx + TILE - 10, y + TILE / 2, 3, 0, Math.PI * 2);
-          ctx.fill();
-          // label
-          ctx.fillStyle = "#ffffff99";
-          ctx.font = `bold 7px monospace`;
+          ctx.font = `${TILE * 0.55}px serif`;
           ctx.textAlign = "center";
-          ctx.fillText(filled ? "✓ LIVE" : "DEPLOY", gx + TILE / 2, y + TILE / 2 + 3);
+          ctx.fillText(filled ? "✅" : "🖥️", gx + TILE / 2, y + TILE / 2 + 6);
         }
       }
 
@@ -114,63 +106,37 @@ function draw(ctx: CanvasRenderingContext2D, state: GameState) {
     ctx.fillText(LANE_LABELS[row] ?? "", CANVAS_WIDTH - 4, y + TILE - 5);
   }
 
-  // build artifacts (was logs) — blue container shapes
+  // build artifacts (was logs) — blue container shapes with box emoji
   for (const l of state.logs) {
     ctx.fillStyle = "#1f3d6e";
     ctx.fillRect(l.x, l.y, l.w, l.h);
     ctx.strokeStyle = "#58a6ff55";
     ctx.lineWidth = 1;
     ctx.strokeRect(l.x + 0.5, l.y + 0.5, l.w, l.h);
-    // container icon lines
-    ctx.strokeStyle = "#58a6ff33";
-    ctx.beginPath();
-    ctx.moveTo(l.x + 8, l.y + 1);
-    ctx.lineTo(l.x + 8, l.y + l.h - 1);
-    ctx.stroke();
-    ctx.fillStyle = "#58a6ff99";
-    ctx.font = "bold 7px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText("artifact", l.x + l.w / 2 + 4, l.y + l.h / 2 + 3);
+    ctx.font = `${l.h * 0.65}px serif`;
+    ctx.textAlign = "left";
+    ctx.fillText("📦", l.x + 4, l.y + l.h * 0.78);
   }
 
-  // incidents (was cars) — red bug-like obstacles
+  // incidents (was cars) — red bug obstacles with 🐛 emoji
   for (const c of state.cars) {
     ctx.fillStyle = "#3d0f0f";
     ctx.fillRect(c.x, c.y, c.w, c.h);
     ctx.strokeStyle = "#f85149aa";
     ctx.lineWidth = 1;
     ctx.strokeRect(c.x + 0.5, c.y + 0.5, c.w, c.h);
-    ctx.fillStyle = "#f8514999";
-    ctx.font = "bold 8px monospace";
+    ctx.font = `${c.h * 0.72}px serif`;
     ctx.textAlign = "center";
-    ctx.fillText("BUG", c.x + c.w / 2, c.y + c.h / 2 + 3);
+    ctx.fillText("🐛", c.x + c.w / 2, c.y + c.h * 0.8);
   }
 
-  // player: artifact package being delivered
+  // player — frog emoji (greyed out when dead)
   const fr = frogHitbox(state);
-  const cx = fr.x + fr.w / 2;
-  const cy = fr.y + fr.h / 2;
-  const color = state.gameOver ? "#6e7681" : "#3fb950";
-
-  // body — small rocket shape
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(cx, fr.y);                      // nose
-  ctx.lineTo(fr.x + fr.w, fr.y + fr.h * 0.7); // right shoulder
-  ctx.lineTo(fr.x + fr.w * 0.75, fr.y + fr.h); // right fin
-  ctx.lineTo(fr.x + fr.w * 0.25, fr.y + fr.h); // left fin
-  ctx.lineTo(fr.x, fr.y + fr.h * 0.7);       // left shoulder
-  ctx.closePath();
-  ctx.fill();
-  // window
-  ctx.fillStyle = "#0d1117";
-  ctx.beginPath();
-  ctx.arc(cx, cy - 1, 4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = color + "99";
-  ctx.beginPath();
-  ctx.arc(cx, cy - 1, 2.5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.globalAlpha = state.gameOver ? 0.35 : 1;
+  ctx.font = `${fr.h * 0.9}px serif`;
+  ctx.textAlign = "center";
+  ctx.fillText("🐸", fr.x + fr.w / 2, fr.y + fr.h * 0.88);
+  ctx.globalAlpha = 1;
 }
 
 // ---------- component ----------

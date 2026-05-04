@@ -8,7 +8,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>🐸🪰 JFrog Fly — SDLC Demo</h1>
+        <h1>JFrog Fly — SDLC Demo</h1>
         <p className="tagline">
           A live demo showing how a containerised app moves from a Git commit to a running production environment — built to illustrate the <strong>JFrog Fly</strong> software delivery workflow.
         </p>
