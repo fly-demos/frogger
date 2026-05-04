@@ -121,11 +121,16 @@ export function moveFrog(state: GameState, dCol: number, dRow: number): GameStat
   if (state.won || state.gameOver) return state;
   const nextCol = Math.max(0, Math.min(COLS - 1, state.frogCol + dCol));
   const nextRow = Math.max(0, Math.min(ROWS - 1, state.frogRow + dRow));
+  // Keep the accumulated river drift when jumping within/between river rows so
+  // the post-jump log collision check uses the frog's actual visual position.
+  // Reset offset only when leaving the river entirely.
+  const stayingInRiver =
+    nextRow >= ROW_RIVER_START && nextRow <= ROW_RIVER_END;
   let next = {
     ...state,
     frogCol: nextCol,
     frogRow: nextRow,
-    frogOffsetX: 0,
+    frogOffsetX: stayingInRiver ? state.frogOffsetX : 0,
   };
   if (nextRow === ROW_GOAL) {
     if (onGoalPad(nextCol)) {
