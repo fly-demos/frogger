@@ -57,7 +57,6 @@
 .step-body strong {
   font-size: 0.85rem;
   color: var(--text);
-  flex-basis: 100%;
 }
 
 .step-detail {
