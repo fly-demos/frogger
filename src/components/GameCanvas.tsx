@@ -168,6 +168,7 @@ export function GameCanvas() {
     <div className="game-wrap">
       <div className="hud">
         <span>Score {ui.score}</span>
+        <span className="hud-controls">↑ ↓ ← → to move</span>
         <span>Lives {"❤️".repeat(Math.max(0, ui.lives))}</span>
       </div>
       <canvas

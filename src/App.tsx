@@ -10,7 +10,7 @@ export default function App() {
       <header className="header">
         <h1>Frogger</h1>
         <p className="tagline">
-          Demo for <strong>JFrog Fly</strong> — React + Docker + Render + GitHub Actions
+          A live demo showing how a containerised app moves from a Git commit to a running production environment — built to illustrate the <strong>JFrog Fly</strong> software delivery workflow.
         </p>
         <dl className="meta">
           <div>
@@ -33,11 +33,6 @@ export default function App() {
       </header>
       <GameCanvas />
       <PipelineInfo />
-      <footer className="footer">
-        <p>
-          Arrows to move · Reach the lily pads · Avoid cars · Ride logs on the river
-        </p>
-      </footer>
     </div>
   );
 }

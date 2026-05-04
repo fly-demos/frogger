@@ -9,11 +9,18 @@
 .hud {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 0.5rem 0.75rem;
   background: var(--panel);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
+}
+
+.hud-controls {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .game-canvas {
