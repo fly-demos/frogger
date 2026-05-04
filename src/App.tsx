@@ -8,9 +8,9 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Frogger</h1>
+        <h1>Fly Delivery</h1>
         <p className="tagline">
-          A live demo showing how a containerised app moves from a Git commit to a running production environment — built to illustrate the <strong>JFrog Fly</strong> software delivery workflow.
+          Navigate your release through the build stream, dodge incidents, and land it in production — a playable metaphor for the <strong>JFrog Fly</strong> software delivery workflow.
         </p>
         <dl className="meta">
           <div>

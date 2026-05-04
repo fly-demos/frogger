@@ -20,81 +20,160 @@ import {
 } from "../game/engine";
 import "./GameCanvas.css";
 
+// ---------- lane labels ----------
+const LANE_LABELS: Record<number, string> = {
+  0: "PRODUCTION",
+  1: "staging",
+  2: "build stream",
+  3: "build stream",
+  4: "build stream",
+  5: "QA",
+  6: "incident zone",
+  7: "incident zone",
+  8: "incident zone",
+  9: "dev",
+};
+
+// ---------- draw ----------
 function draw(ctx: CanvasRenderingContext2D, state: GameState) {
   ctx.fillStyle = "#0d1117";
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   for (let row = 0; row < ROWS; row++) {
     const y = row * TILE;
+
+    // production row
     if (row === ROW_GOAL) {
-      ctx.fillStyle = "#063366";
+      ctx.fillStyle = "#0d2136";
       ctx.fillRect(0, y, CANVAS_WIDTH, TILE);
       for (let col = 0; col < COLS; col++) {
         const gx = col * TILE;
         if (GOAL_PAD_COLS.includes(col)) {
           const filled = state.filledGoals.has(col);
-          ctx.fillStyle = filled ? "#238636" : "#2ea043";
-          ctx.fillRect(gx + 4, y + 6, TILE - 8, TILE - 12);
-          ctx.fillStyle = "#116329";
+          // server rack shape
+          ctx.fillStyle = filled ? "#1a7f37" : "#1f6feb";
+          ctx.fillRect(gx + 5, y + 5, TILE - 10, TILE - 10);
+          // status light
+          ctx.fillStyle = filled ? "#3fb950" : "#58a6ff";
           ctx.beginPath();
-          ctx.ellipse(gx + TILE / 2, y + TILE / 2 - 2, 8, 5, 0, 0, Math.PI * 2);
+          ctx.arc(gx + TILE - 10, y + TILE / 2, 3, 0, Math.PI * 2);
           ctx.fill();
+          // label
+          ctx.fillStyle = "#ffffff99";
+          ctx.font = `bold 7px monospace`;
+          ctx.textAlign = "center";
+          ctx.fillText(filled ? "✓ LIVE" : "DEPLOY", gx + TILE / 2, y + TILE / 2 + 3);
         }
       }
+
+    // safe / pipeline safe zones
     } else if (row === ROW_START || row === 5 || row === 1) {
-      ctx.fillStyle = "#14532d";
+      ctx.fillStyle = row === ROW_START ? "#0d1f12" : "#111820";
       ctx.fillRect(0, y, CANVAS_WIDTH, TILE);
-      for (let x = 0; x < CANVAS_WIDTH; x += TILE) {
-        ctx.strokeStyle = "#166534";
-        ctx.strokeRect(x + 0.5, y + 0.5, TILE, TILE);
-      }
+      // dashed separator
+      ctx.setLineDash([4, 6]);
+      ctx.strokeStyle = "#30363d88";
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(CANVAS_WIDTH, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+    // build stream (was river)
     } else if (row >= ROW_RIVER_START && row <= ROW_RIVER_END) {
-      ctx.fillStyle = "#0a3069";
+      ctx.fillStyle = "#0c1a2e";
       ctx.fillRect(0, y, CANVAS_WIDTH, TILE);
-      ctx.strokeStyle = "rgba(255,255,255,0.06)";
-      for (let x = 0; x < CANVAS_WIDTH; x += 24) {
+      // scrolling data lines
+      ctx.strokeStyle = "rgba(88,166,255,0.07)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < CANVAS_WIDTH; x += 20) {
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x + 12, y + TILE);
+        ctx.lineTo(x, y + TILE);
         ctx.stroke();
       }
+
+    // incident zone (was road)
     } else {
-      ctx.fillStyle = "#21262d";
+      ctx.fillStyle = "#1a0d0d";
       ctx.fillRect(0, y, CANVAS_WIDTH, TILE);
-      ctx.strokeStyle = "#f0f6fc22";
-      for (let x = 0; x < CANVAS_WIDTH; x += TILE) {
-        ctx.strokeRect(x + 0.5, y + TILE * 0.65, TILE, 2);
-      }
+      // lane markings
+      ctx.strokeStyle = "#f85149" + "22";
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(0, y + TILE / 2);
+      ctx.lineTo(CANVAS_WIDTH, y + TILE / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
     }
+
+    // lane label (right-aligned, subtle)
+    ctx.fillStyle = "#ffffff18";
+    ctx.font = "7px monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(LANE_LABELS[row] ?? "", CANVAS_WIDTH - 4, y + TILE - 5);
   }
 
+  // build artifacts (was logs) — blue container shapes
   for (const l of state.logs) {
-    ctx.fillStyle = "#8b5a2b";
+    ctx.fillStyle = "#1f3d6e";
     ctx.fillRect(l.x, l.y, l.w, l.h);
-    ctx.strokeStyle = "#5c3d1e";
+    ctx.strokeStyle = "#58a6ff55";
+    ctx.lineWidth = 1;
     ctx.strokeRect(l.x + 0.5, l.y + 0.5, l.w, l.h);
+    // container icon lines
+    ctx.strokeStyle = "#58a6ff33";
+    ctx.beginPath();
+    ctx.moveTo(l.x + 8, l.y + 1);
+    ctx.lineTo(l.x + 8, l.y + l.h - 1);
+    ctx.stroke();
+    ctx.fillStyle = "#58a6ff99";
+    ctx.font = "bold 7px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("artifact", l.x + l.w / 2 + 4, l.y + l.h / 2 + 3);
   }
 
+  // incidents (was cars) — red bug-like obstacles
   for (const c of state.cars) {
-    const hue = ((c.id.charCodeAt(2) || 0) * 47) % 360;
-    ctx.fillStyle = `hsl(${hue} 55% 45%)`;
+    ctx.fillStyle = "#3d0f0f";
     ctx.fillRect(c.x, c.y, c.w, c.h);
-    ctx.fillStyle = "#f0f6fc33";
-    ctx.fillRect(c.x + 6, c.y + 4, c.w - 20, c.h - 14);
+    ctx.strokeStyle = "#f85149aa";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(c.x + 0.5, c.y + 0.5, c.w, c.h);
+    ctx.fillStyle = "#f8514999";
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("BUG", c.x + c.w / 2, c.y + c.h / 2 + 3);
   }
 
+  // player: artifact package being delivered
   const fr = frogHitbox(state);
-  ctx.fillStyle = state.gameOver ? "#6e7681" : "#3fb950";
+  const cx = fr.x + fr.w / 2;
+  const cy = fr.y + fr.h / 2;
+  const color = state.gameOver ? "#6e7681" : "#3fb950";
+
+  // body — small rocket shape
+  ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.ellipse(fr.x + fr.w / 2, fr.y + fr.h / 2 + 2, fr.w / 2.2, fr.h / 2.4, 0, 0, Math.PI * 2);
+  ctx.moveTo(cx, fr.y);                      // nose
+  ctx.lineTo(fr.x + fr.w, fr.y + fr.h * 0.7); // right shoulder
+  ctx.lineTo(fr.x + fr.w * 0.75, fr.y + fr.h); // right fin
+  ctx.lineTo(fr.x + fr.w * 0.25, fr.y + fr.h); // left fin
+  ctx.lineTo(fr.x, fr.y + fr.h * 0.7);       // left shoulder
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "#116329";
+  // window
+  ctx.fillStyle = "#0d1117";
   ctx.beginPath();
-  ctx.ellipse(fr.x + fr.w / 2 - 4, fr.y + fr.h * 0.35, 4, 3, 0, 0, Math.PI * 2);
-  ctx.ellipse(fr.x + fr.w / 2 + 4, fr.y + fr.h * 0.35, 4, 3, 0, 0, Math.PI * 2);
+  ctx.arc(cx, cy - 1, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = color + "99";
+  ctx.beginPath();
+  ctx.arc(cx, cy - 1, 2.5, 0, Math.PI * 2);
   ctx.fill();
 }
 
+// ---------- component ----------
 export function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef<GameState>(createInitialState());
@@ -167,9 +246,9 @@ export function GameCanvas() {
   return (
     <div className="game-wrap">
       <div className="hud">
-        <span>Score {ui.score}</span>
+        <span>Deploys {ui.score}</span>
         <span className="hud-controls">↑ ↓ ← → to move</span>
-        <span>Lives {"❤️".repeat(Math.max(0, ui.lives))}</span>
+        <span>{"🚀".repeat(Math.max(0, ui.lives))}</span>
       </div>
       <canvas
         ref={canvasRef}
@@ -177,17 +256,17 @@ export function GameCanvas() {
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
         role="img"
-        aria-label="Frogger game field"
+        aria-label="Fly delivery game"
       />
       {ui.won ? (
         <div className="overlay win">
-          <p>You cleared every lily pad.</p>
+          <p>All environments deployed! 🚀</p>
           <p className="hint">Press Space to play again.</p>
         </div>
       ) : null}
       {ui.gameOver ? (
         <div className="overlay lose">
-          <p>Game over</p>
+          <p>Deployment failed.</p>
           <p className="hint">Press Space to retry.</p>
         </div>
       ) : null}
