@@ -17,7 +17,11 @@ export default function App() {
             <dd>{mode}</dd>
           </div>
           <div>
-            <dt>Build</dt>
+            <dt>Image</dt>
+            <dd>{import.meta.env.VITE_GIT_SHA || "local"}</dd>
+          </div>
+          <div>
+            <dt>Built</dt>
             <dd>{__BUILD_TIME__}</dd>
           </div>
         </dl>

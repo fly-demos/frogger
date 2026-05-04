@@ -1,10 +1,11 @@
 # syntax=docker/dockerfile:1
 FROM --platform=linux/amd64 node:20-alpine AS build
+ARG GIT_SHA=unknown
 WORKDIR /app
 COPY package.json ./
 RUN npm install
 COPY . .
-RUN npx vite build
+RUN VITE_GIT_SHA=${GIT_SHA} npx vite build
 
 FROM --platform=linux/amd64 node:20-alpine AS runner
 WORKDIR /app
