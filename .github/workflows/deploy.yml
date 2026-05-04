@@ -31,7 +31,9 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
-          build-args: GIT_SHA=${{ github.sha }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            IMAGE_REF=ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
 
       - name: Trigger Render deploy
         env:

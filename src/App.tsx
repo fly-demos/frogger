@@ -18,6 +18,10 @@ export default function App() {
           </div>
           <div>
             <dt>Image</dt>
+            <dd>{import.meta.env.VITE_IMAGE_REF || "local"}</dd>
+          </div>
+          <div>
+            <dt>SHA</dt>
             <dd>{import.meta.env.VITE_GIT_SHA || "local"}</dd>
           </div>
           <div>
