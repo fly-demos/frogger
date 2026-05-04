@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install
 COPY . .
-RUN npm run build
+RUN npx vite build
 
 FROM --platform=linux/amd64 node:20-alpine AS runner
 WORKDIR /app
