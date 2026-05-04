@@ -2,6 +2,7 @@ import "./PipelineInfo.css";
 
 const sha = import.meta.env.VITE_GIT_SHA || "local";
 const imageRef = import.meta.env.VITE_IMAGE_REF || "local";
+const npmRegistry = import.meta.env.VITE_NPM_REGISTRY || "https://registry.npmjs.org/";
 const shortSha = sha === "local" ? "local" : sha.slice(0, 7);
 const isLive = sha !== "local";
 
@@ -14,7 +15,7 @@ const STEPS: { label: string; detail: string; href?: string; linkLabel?: string 
   },
   {
     label: "CI passes",
-    detail: "Lint · tests · Docker build",
+    detail: `Lint · tests · Docker build · npm from ${npmRegistry}`,
     href: isLive ? `https://github.com/fly-demos/frogger/commit/${sha}/checks` : undefined,
     linkLabel: "View workflow run",
   },

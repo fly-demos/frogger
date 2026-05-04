@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install
 COPY . .
-RUN VITE_GIT_SHA=${GIT_SHA} VITE_IMAGE_REF=${IMAGE_REF} npx vite build
+RUN VITE_GIT_SHA=${GIT_SHA} VITE_IMAGE_REF=${IMAGE_REF} VITE_NPM_REGISTRY=$(npm config get registry) npx vite build
 
 FROM --platform=linux/amd64 node:20-alpine AS runner
 WORKDIR /app
