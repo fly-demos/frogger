@@ -3,13 +3,39 @@ import "./PipelineInfo.css";
 const sha = import.meta.env.VITE_GIT_SHA || "local";
 const imageRef = import.meta.env.VITE_IMAGE_REF || "local";
 const shortSha = sha === "local" ? "local" : sha.slice(0, 7);
+const isLive = sha !== "local";
 
-const STEPS = [
-  { label: "Code merged to main", detail: "GitHub Actions triggered" },
-  { label: "CI passes", detail: "Lint · tests · Docker build" },
-  { label: "Image pushed to registry", detail: imageRef === "local" ? "local build" : imageRef },
-  { label: "Production updated", detail: "Render pulls the new image and redeploys" },
-  { label: "This page served", detail: `Running image sha-${shortSha}` },
+const STEPS: { label: string; detail: string; href?: string; linkLabel?: string }[] = [
+  {
+    label: "Code merged to main",
+    detail: `Commit ${shortSha}`,
+    href: isLive ? `https://github.com/fly-demos/frogger/commit/${sha}` : undefined,
+    linkLabel: "View commit",
+  },
+  {
+    label: "CI passes",
+    detail: "Lint · tests · Docker build",
+    href: isLive ? `https://github.com/fly-demos/frogger/commit/${sha}/checks` : undefined,
+    linkLabel: "View workflow run",
+  },
+  {
+    label: "Image pushed to registry",
+    detail: isLive ? imageRef : "local build",
+    href: isLive ? "https://github.com/fly-demos/frogger/pkgs/container/frogger" : undefined,
+    linkLabel: "View in GHCR",
+  },
+  {
+    label: "Production updated",
+    detail: "Render pulls the new image and redeploys",
+    href: "https://dashboard.render.com",
+    linkLabel: "Render dashboard",
+  },
+  {
+    label: "Live app",
+    detail: typeof window !== "undefined" ? window.location.origin : "",
+    href: typeof window !== "undefined" ? window.location.origin : undefined,
+    linkLabel: "Open",
+  },
 ];
 
 export function PipelineInfo() {
@@ -20,30 +46,18 @@ export function PipelineInfo() {
         {STEPS.map((s, i) => (
           <li key={i} className="pipeline-step">
             <span className="step-num">{i + 1}</span>
-            <div>
+            <div className="step-body">
               <strong>{s.label}</strong>
-              <p>{s.detail}</p>
+              <span className="step-detail">{s.detail}</span>
+              {s.href && (
+                <a href={s.href} target="_blank" rel="noreferrer" className="step-link">
+                  {s.linkLabel} ↗
+                </a>
+              )}
             </div>
           </li>
         ))}
       </ol>
-      <div className="pipeline-links">
-        {sha !== "local" && (
-          <>
-            <a href={`https://github.com/fly-demos/frogger/commit/${sha}`} target="_blank" rel="noreferrer">
-              Commit {shortSha}
-            </a>
-            <span>·</span>
-            <a href="https://github.com/fly-demos/frogger/pkgs/container/frogger" target="_blank" rel="noreferrer">
-              Image in registry
-            </a>
-            <span>·</span>
-            <a href="https://github.com/fly-demos/frogger/actions" target="_blank" rel="noreferrer">
-              CI runs
-            </a>
-          </>
-        )}
-      </div>
     </section>
   );
 }
