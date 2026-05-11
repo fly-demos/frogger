@@ -2,7 +2,15 @@ import "./App.css";
 import { GameCanvas } from "./components/GameCanvas";
 import { PipelineInfo } from "./components/PipelineInfo";
 
-const mode = import.meta.env.PROD ? "production" : "local";
+function detectMode() {
+  if (typeof window === "undefined") return "local";
+  const host = window.location.hostname;
+  if (host.includes("staging")) return "staging";
+  if (host.includes("production")) return "production";
+  return "local";
+}
+
+const mode = detectMode();
 
 export default function App() {
   return (
