@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
   id-token: write
 
 jobs:
@@ -20,17 +21,22 @@ jobs:
       - name: Setup JFrog Fly
         uses: jfrog/fly-action@v1
 
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
       - name: Set image tag
         id: meta
         run: echo "tag=sha-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push to Fly registry
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.meta.outputs.tag }}
+          tags: |
+            ${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
           build-args: |
             GIT_SHA=${{ github.sha }}
             IMAGE_REF=${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.meta.outputs.tag }}
@@ -39,13 +45,14 @@ jobs:
       - name: Trigger Render deploy
         env:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-          IMAGE: ${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.meta.outputs.tag }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          OWNER: ${{ github.repository_owner }}
         run: |
           set -e
           if [ -z "$HOOK" ]; then
             echo "RENDER_DEPLOY_HOOK_URL not set — skipping Render trigger."
             exit 0
           fi
-          IMGURL_PART=$(python3 -c "import os, urllib.parse; print(urllib.parse.quote(os.environ['IMAGE'], safe=''))")
+          IMGURL_PART=$(python3 -c "import os, urllib.parse; print(urllib.parse.quote(f\"ghcr.io/{os.environ['OWNER']}/frogger:{os.environ['TAG']}\", safe=''))")
           if [[ "$HOOK" != *\?* ]]; then SEP='?'; else SEP='&'; fi
           curl -fsS -X POST "${HOOK}${SEP}imgURL=${IMGURL_PART}"
