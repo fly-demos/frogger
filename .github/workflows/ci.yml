@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -21,9 +20,6 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-
-      - name: Set up JFrog Fly
-        uses: jfrog/fly-action@v1
 
       - name: Install
         run: npm ci
@@ -45,4 +41,3 @@ jobs:
           tags: frogger:ci
           build-args: |
             GIT_SHA=${{ github.sha }}
-            FLY_REGISTRY=${{ env.FLY_REGISTRY_SUBDOMAIN }}
