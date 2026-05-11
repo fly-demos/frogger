@@ -19,7 +19,7 @@ Promote to prod →  Manual: GitHub Actions UI or push to production branch
 
 | Environment | URL | Trigger |
 |---|---|---|
-| Staging | Northflank `code.run` subdomain | Auto on merge to `main` |
+| Staging | https://p01--staging--8x4cp6jdkxqb.code.run | Auto on merge to `main` |
 | Production | Northflank `code.run` subdomain | Manual via GitHub Actions |
 
 ---
@@ -52,9 +52,11 @@ Northflank → Account settings → **API tokens → Create token**.
 | Type | Name | Value |
 |---|---|---|
 | Secret | `NORTHFLANK_API_TOKEN` | Northflank API token |
+| Variable | `NORTHFLANK_TEAM_ID` | Northflank team slug (e.g. `my-team`) — omit if personal account |
 | Variable | `NORTHFLANK_PROJECT_ID` | Northflank project ID |
 | Variable | `NORTHFLANK_STAGING_SERVICE_ID` | Staging service ID |
 | Variable | `NORTHFLANK_PRODUCTION_SERVICE_ID` | Production service ID |
+| Variable | `NORTHFLANK_REGISTRY_CREDENTIAL_ID` | ID of the saved GHCR credential in Northflank |
 
 > `GITHUB_TOKEN` is provided automatically for pushing to GHCR — no extra secret needed.
 
