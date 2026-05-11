@@ -19,10 +19,6 @@ export default function App() {
             <dd>{mode}</dd>
           </div>
           <div>
-            <dt>npm registry</dt>
-            <dd>{import.meta.env.VITE_NPM_REGISTRY || "local"}</dd>
-          </div>
-          <div>
             <dt>Image</dt>
             <dd>{import.meta.env.VITE_IMAGE_REF || "local"}</dd>
           </div>
