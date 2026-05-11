@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM --platform=linux/amd64 node:20-alpine AS build
+ARG FLY_REGISTRY
+FROM --platform=linux/amd64 ${FLY_REGISTRY}/docker/node:20-alpine AS build
 ARG GIT_SHA=unknown
 ARG IMAGE_REF=local
 WORKDIR /app
@@ -8,7 +9,7 @@ RUN npm install
 COPY . .
 RUN VITE_GIT_SHA=${GIT_SHA} VITE_IMAGE_REF=${IMAGE_REF} npx vite build
 
-FROM --platform=linux/amd64 node:20-alpine AS runner
+FROM --platform=linux/amd64 ${FLY_REGISTRY}/docker/node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN npm install -g serve@14.2.4
