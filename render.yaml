@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: frogger
+    runtime: image
+    image:
+      url: froggerdemo.jfrog.io/docker/frogger:latest
+      creds:
+        fromRegistryCreds:
+          name: fly-registry  # must match the credential name in Render Workspace Settings
+    envVars:
+      - key: PORT
+        value: "10000"
