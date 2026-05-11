@@ -31,7 +31,7 @@ export default function App() {
             <dd>{import.meta.env.VITE_GIT_SHA || "local"}</dd>
           </div>
           <div>
-            <dt>Built</dt>
+            <dt>Build time</dt>
             <dd>{__BUILD_TIME__}</dd>
           </div>
         </dl>
