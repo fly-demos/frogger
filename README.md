@@ -1,71 +1,83 @@
-# Fly Delivery — JFrog Fly demo
+# Frogger — SDLC Demo
 
 A Frogger-style game that doubles as a live demo of a containerised delivery pipeline.
-The game UI shows the exact image reference, Git SHA, and build timestamp running in production — every deploy is traceable back to its commit and CI run.
-
-**Reference deployment:** https://frogger-ef2h.onrender.com
-
----
-
-## What this demos
-
-| JFrog Fly capability | How it shows up here |
-|---|---|
-| See all builds + contexts | GitHub Actions runs — one per commit to `main` |
-| Explore produced artifacts | Docker image pushed to GHCR, tagged with `sha-<short>` |
-| See runtime environment | App UI displays the registry URL and Git SHA baked into the running container |
+The running app displays the exact image reference, Git SHA, and build timestamp — every deploy is fully traceable back to its commit and CI run.
 
 ---
 
 ## Pipeline
 
 ```
-git push → GitHub Actions (lint · test · build) → Docker image → GHCR → Render
+PR opened       →  CI: lint · test · Docker build check
+Merge to main   →  Build image → push to GHCR → auto-deploy to Northflank staging
+Promote to prod →  Manual: GitHub Actions UI or push to production branch
 ```
 
 ---
 
-## Set up your own demo in 4 steps
+## Environments
+
+| Environment | URL | Trigger |
+|---|---|---|
+| Staging | Northflank `code.run` subdomain | Auto on merge to `main` |
+| Production | Northflank `code.run` subdomain | Manual via GitHub Actions |
+
+---
+
+## Set up your own demo
 
 ### 1. Fork the repo
 
 Fork [fly-demos/frogger](https://github.com/fly-demos/frogger) into a GitHub org or account you control.
 
-### 2. Set up a Render service
+### 2. Create two services in Northflank
 
-1. Create a free account at [render.com](https://render.com).
-2. **New → Web Service → Deploy an existing image.**
-3. Image URL: `ghcr.io/<your-github-org>/frogger:sha-<any-7-char-sha>` (you can use a placeholder — you'll update it via deploy hook after the first CI run).
-4. Name the service something clean (e.g. `frogger`) — this becomes your subdomain.
-5. Set **PORT** environment variable → `10000`.
-6. Copy the **Deploy Hook URL** from the service's Settings tab.
+1. Create a free account at [northflank.com](https://northflank.com).
+2. Create a project (e.g. `frogger-demo`).
+3. Create two **Deployment** services inside it: `staging` and `production`.
+4. For each service:
+   - Source: **External Docker image** → `ghcr.io/<your-github-org>/frogger:latest`
+   - Registry credentials: add a GitHub PAT with `read:packages` scope
+   - Port: `10000` / HTTP / public
+   - Environment variable: `PORT=10000`
+5. Note the **Project ID** and each **Service ID** from the Northflank dashboard URL.
 
-> **Private GHCR image?** Go to Render → Workspace → Container Registry Credentials and add a GitHub PAT with `read:packages` scope. Point the service at that credential.
+### 3. Create a Northflank API token
 
-### 3. Add secrets to GitHub
+Northflank → Account settings → **API tokens → Create token**.
 
-In your forked repo: **Settings → Secrets and variables → Actions**
+### 4. Add secrets and variables to GitHub
 
-| Secret | Value |
-|---|---|
-| `RENDER_DEPLOY_HOOK_URL` | The deploy hook URL from Render |
+**Settings → Secrets and variables → Actions**
 
-No other secrets are needed — `GITHUB_TOKEN` is provided automatically by GitHub Actions for pushing to GHCR.
+| Type | Name | Value |
+|---|---|---|
+| Secret | `NORTHFLANK_API_TOKEN` | Northflank API token |
+| Variable | `NORTHFLANK_PROJECT_ID` | Northflank project ID |
+| Variable | `NORTHFLANK_STAGING_SERVICE_ID` | Staging service ID |
+| Variable | `NORTHFLANK_PRODUCTION_SERVICE_ID` | Production service ID |
 
-> **One-time org setting:** GitHub org defaults sometimes restrict `GITHUB_TOKEN` to read-only. If the first deploy fails on the GHCR push step, go to your org → **Settings → Actions → General → Workflow permissions** and set it to **Read and write**.
+> `GITHUB_TOKEN` is provided automatically for pushing to GHCR — no extra secret needed.
 
-### 4. Push to main
+> **One-time org setting:** Go to your org → **Settings → Actions → General → Workflow permissions** → set to **Read and write**.
+
+### 5. Push to main
 
 ```bash
 git commit --allow-empty -m "trigger first deploy" && git push
 ```
 
-GitHub Actions will:
-1. Lint, test, and build the app.
-2. Build a Docker image tagged `sha-<short-sha>` and push it to `ghcr.io/<org>/frogger`.
-3. Call the Render deploy hook — Render pulls the new image and restarts the service.
+GitHub Actions will build the image, push to GHCR, and deploy to Northflank staging automatically.
 
-Your live app will show the image reference and Git SHA of that exact deploy.
+### 6. Promote to production
+
+**Option A — GitHub UI:**
+Actions → **Promote to Production** → Run workflow → optionally specify an image tag.
+
+**Option B — Git:**
+```bash
+git checkout production && git merge main && git push origin production
+```
 
 ---
 
@@ -78,7 +90,7 @@ npm install && npm run dev
 Or with Docker:
 
 ```bash
-docker build -t frogger:local . && docker run --rm -p 8080:8080 -e PORT=8080 frogger:local
+docker build -t frogger:local . && docker run --rm -p 10000:10000 frogger:local
 ```
 
 ---
@@ -90,14 +102,8 @@ docker build -t frogger:local . && docker run --rm -p 8080:8080 -e PORT=8080 fro
 | App | React 19 + Vite + TypeScript |
 | Container | Docker multi-stage → `linux/amd64` |
 | Registry | GitHub Container Registry (GHCR) |
-| Hosting | Render (Existing Image) |
+| Hosting | Northflank (staging + production) |
 | CI/CD | GitHub Actions |
-
----
-
-## Connecting JFrog Fly (next step)
-
-Once your baseline demo is running, plugging in Fly requires no application code changes — add your JFrog registry as an additional push target in the deploy workflow and update the Render pull credential to point at it.
 
 ---
 
