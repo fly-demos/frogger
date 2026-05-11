@@ -15,12 +15,16 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   promote:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Setup JFrog Fly
+        uses: jfrog/fly-action@v1
+
       - name: Resolve image tag
         id: tag
         run: |
@@ -37,7 +41,7 @@ jobs:
           NF_PROJECT: ${{ vars.NORTHFLANK_PROJECT_ID }}
           NF_SERVICE: ${{ vars.NORTHFLANK_PRODUCTION_SERVICE_ID }}
           NF_CRED: ${{ vars.NORTHFLANK_REGISTRY_CREDENTIAL_ID }}
-          IMAGE: ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.tag.outputs.tag }}
+          IMAGE: ${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.tag.outputs.tag }}
         run: |
           curl -fsS -X PATCH \
             "https://api.northflank.com/v1/teams/${NF_TEAM}/projects/${NF_PROJECT}/services/deployment/${NF_SERVICE}" \
@@ -55,4 +59,4 @@ jobs:
       - name: Summary
         run: |
           echo "### Promoted to production" >> $GITHUB_STEP_SUMMARY
-          echo "Image: \`ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Image: \`${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
