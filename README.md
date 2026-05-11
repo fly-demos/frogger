@@ -39,7 +39,6 @@ Fork [fly-demos/frogger](https://github.com/fly-demos/frogger) into a GitHub org
    - Source: **External Docker image** → `ghcr.io/<your-github-org>/frogger:latest`
    - Registry credentials: add a GitHub PAT with `read:packages` scope
    - Port: `10000` / HTTP / public
-   - Environment variable: `PORT=10000`
 5. Note the **Project ID** and each **Service ID** from the Northflank dashboard URL.
 
 ### 3. Create a Northflank API token
