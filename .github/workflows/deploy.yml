@@ -50,9 +50,9 @@ jobs:
           NF_CRED: ${{ vars.NORTHFLANK_REGISTRY_CREDENTIAL_ID }}
           IMAGE: ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
         run: |
-          echo "--- listing team projects ---"
+          echo "--- listing services in project ---"
           curl -sS \
-            "https://api.northflank.com/v1/teams/${NF_TEAM}/projects" \
+            "https://api.northflank.com/v1/teams/${NF_TEAM}/projects/${NF_PROJECT}/services" \
             -H "Authorization: Bearer ${NF_TOKEN}" | head -c 2000
 
           echo ""
