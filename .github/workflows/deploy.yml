@@ -1,13 +1,16 @@
-name: Deploy
+name: Deploy to Staging
 
 on:
   push:
     branches: [main]
 
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
 permissions:
   contents: read
   packages: write
-  id-token: write
 
 jobs:
   build-and-deploy:
@@ -18,9 +21,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Setup JFrog Fly
-        uses: jfrog/fly-action@v1
-
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
@@ -28,31 +28,28 @@ jobs:
         id: meta
         run: echo "tag=sha-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push
+      - name: Build and push to GHCR
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64
           tags: |
-            ${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.meta.outputs.tag }}
             ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/frogger:latest
           build-args: |
             GIT_SHA=${{ github.sha }}
-            IMAGE_REF=${{ env.FLY_REGISTRY_SUBDOMAIN }}/docker/frogger:${{ steps.meta.outputs.tag }}
-            FLY_REGISTRY=${{ env.FLY_REGISTRY_SUBDOMAIN }}
+            IMAGE_REF=ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
 
-      - name: Trigger Render deploy
+      - name: Deploy to Northflank staging
         env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-          TAG: ${{ steps.meta.outputs.tag }}
-          OWNER: ${{ github.repository_owner }}
+          NF_TOKEN: ${{ secrets.NORTHFLANK_API_TOKEN }}
+          NF_PROJECT: ${{ vars.NORTHFLANK_PROJECT_ID }}
+          NF_SERVICE: ${{ vars.NORTHFLANK_STAGING_SERVICE_ID }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.meta.outputs.tag }}
         run: |
-          set -e
-          if [ -z "$HOOK" ]; then
-            echo "RENDER_DEPLOY_HOOK_URL not set — skipping Render trigger."
-            exit 0
-          fi
-          IMGURL_PART=$(python3 -c "import os, urllib.parse; print(urllib.parse.quote(f\"ghcr.io/{os.environ['OWNER']}/frogger:{os.environ['TAG']}\", safe=''))")
-          if [[ "$HOOK" != *\?* ]]; then SEP='?'; else SEP='&'; fi
-          curl -fsS -X POST "${HOOK}${SEP}imgURL=${IMGURL_PART}"
+          curl -fsS -X POST \
+            "https://api.northflank.com/v1/projects/${NF_PROJECT}/services/${NF_SERVICE}/deploy" \
+            -H "Authorization: Bearer ${NF_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"imagePath\": \"${IMAGE}\"}"

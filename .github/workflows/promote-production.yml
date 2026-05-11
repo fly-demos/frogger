@@ -1,0 +1,49 @@
+name: Promote to Production
+
+on:
+  # Manual trigger from GitHub UI: Actions → Promote to Production → Run workflow
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to promote (e.g. sha-a1b2c3d) — leave blank to promote latest staging"
+        required: false
+        default: "latest"
+
+  # Git-based trigger: push to the `production` branch promotes that commit to prod
+  push:
+    branches: [production]
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Resolve image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "tag=sha-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to Northflank production
+        env:
+          NF_TOKEN: ${{ secrets.NORTHFLANK_API_TOKEN }}
+          NF_PROJECT: ${{ vars.NORTHFLANK_PROJECT_ID }}
+          NF_SERVICE: ${{ vars.NORTHFLANK_PRODUCTION_SERVICE_ID }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.tag.outputs.tag }}
+        run: |
+          curl -fsS -X POST \
+            "https://api.northflank.com/v1/projects/${NF_PROJECT}/services/${NF_SERVICE}/deploy" \
+            -H "Authorization: Bearer ${NF_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"imagePath\": \"${IMAGE}\"}"
+
+      - name: Summary
+        run: |
+          echo "### Promoted to production" >> $GITHUB_STEP_SUMMARY
+          echo "Image: \`ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY

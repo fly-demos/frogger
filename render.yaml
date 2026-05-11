@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: frogger
-    runtime: image
-    image:
-      url: ghcr.io/fly-demos/frogger:latest
-    envVars:
-      - key: PORT
-        value: "10000"
