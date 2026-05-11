@@ -37,6 +37,7 @@ jobs:
           NF_PROJECT: ${{ vars.NORTHFLANK_PROJECT_ID }}
           NF_SERVICE: ${{ vars.NORTHFLANK_PRODUCTION_SERVICE_ID }}
           NF_CRED: ${{ vars.NORTHFLANK_REGISTRY_CREDENTIAL_ID }}
+          TAG: ${{ steps.tag.outputs.tag }}
           IMAGE: ghcr.io/${{ github.repository_owner }}/frogger:${{ steps.tag.outputs.tag }}
         run: |
           curl -fsS -X PATCH \
@@ -45,12 +46,15 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"deployment\":{\"external\":{\"imagePath\":\"${IMAGE}\",\"credentials\":\"${NF_CRED}\"}}}"
 
-          # Force a restart so Northflank re-pulls the image. Without this,
-          # promoting a moving tag like `:latest` is a no-op because the
-          # imagePath value hasn't changed even though the underlying digest has.
-          curl -fsS -X POST \
-            "https://api.northflank.com/v1/projects/${NF_PROJECT}/services/${NF_SERVICE}/restart" \
-            -H "Authorization: Bearer ${NF_TOKEN}"
+          # For moving tags like `:latest` the PATCH is a no-op because imagePath
+          # is unchanged, so we have to force a restart to make Northflank re-pull.
+          # For specific tags the PATCH itself triggers a rollout — calling restart
+          # then races with it and leaves the old image running.
+          if [ "${TAG}" = "latest" ]; then
+            curl -fsS -X POST \
+              "https://api.northflank.com/v1/projects/${NF_PROJECT}/services/${NF_SERVICE}/restart" \
+              -H "Authorization: Bearer ${NF_TOKEN}"
+          fi
 
       - name: Summary
         run: |
