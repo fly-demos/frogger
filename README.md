@@ -20,7 +20,7 @@ Promote to prod →  Manual: GitHub Actions UI or push to production branch
 | Environment | URL | Trigger |
 |---|---|---|
 | Staging | https://p01--staging--8x4cp6jdkxqb.code.run | Auto on merge to `main` |
-| Production | Northflank `code.run` subdomain | Manual via GitHub Actions |
+| Production | https://p01--production--8x4cp6jdkxqb.code.run | Manual via GitHub Actions |
 
 ---
 
