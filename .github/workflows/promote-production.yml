@@ -45,6 +45,13 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"deployment\":{\"external\":{\"imagePath\":\"${IMAGE}\",\"credentials\":\"${NF_CRED}\"}}}"
 
+          # Force a restart so Northflank re-pulls the image. Without this,
+          # promoting a moving tag like `:latest` is a no-op because the
+          # imagePath value hasn't changed even though the underlying digest has.
+          curl -fsS -X POST \
+            "https://api.northflank.com/v1/projects/${NF_PROJECT}/services/${NF_SERVICE}/restart" \
+            -H "Authorization: Bearer ${NF_TOKEN}"
+
       - name: Summary
         run: |
           echo "### Promoted to production" >> $GITHUB_STEP_SUMMARY
